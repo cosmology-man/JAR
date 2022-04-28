@@ -91,7 +91,7 @@ def confide(R, B, V, num):
                     violet_y = V[m]['y']
                     if math.sqrt((red_x-violet_x)**2+(red_y-violet_y)**2) < num:
                         if math.sqrt((violet_x-blue_x)**2+(violet_y-blue_y)**2) < num:
-                            objects.append([R[i], B[n], V[m]])
+                            objects.append([R[i]['cflux'], B[n]['cflux'], V[m]['cflux']])
     return objects
             
 #M29 flats
@@ -245,7 +245,7 @@ M15_B_objects = objectdetect('M15 B', M15_B/flat_B_M15, 5)
 M15_R_objects = objectdetect('M15 R', M15_R/flat_R_M15, 5)
 M15_V_objects = objectdetect('M15 V', M15_V/flat_V_M15, 5)
 
-M_29_objects = confide(M29_B_objects, M29_V_objects, M29_R_objects, 3)
+M29_objects = confide(M29_B_objects, M29_V_objects, M29_R_objects, 3)
 M15_objects = confide(M15_B_objects, M15_V_objects, M15_R_objects, 5)
 
 
