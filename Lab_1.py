@@ -11,6 +11,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sep
 from matplotlib.patches import Ellipse
+from astropy.modeling import models
+from astropy import units as u
+import math
 
 def openfile(folder, name, vmax_bruh, integration_time, wanted_integration_time):
     global_hdulist = []
@@ -55,8 +58,9 @@ def objectdetect(name, final_science, extraction_number):
     for i in range(len(objects)):
         if objects[i]['a']/objects[i]['b'] > 1.25:
             delete.append(i)
-    print(delete)
     objects = np.delete(objects, delete)
+    
+
     
     fig, ax = plt.subplots()
     m, s = np.mean(data_sub), np.std(data_sub)
@@ -72,7 +76,24 @@ def objectdetect(name, final_science, extraction_number):
         e.set_edgecolor('red')
         ax.add_artist(e)
     return objects
-        
+
+def confide(R, B, V, num):
+    objects = []
+    for i in range(len(R)):
+        red_x = R[i]['x']
+        red_y = R[i]['y']
+        for n in range(len(B)):
+            blue_x = B[n]['x']
+            blue_y = B[n]['y']
+            if math.sqrt((red_x-blue_x)**2+(red_y-blue_y)**2) < num:
+                for m in range(len(V)):
+                    violet_x = V[m]['x']
+                    violet_y = V[m]['y']
+                    if math.sqrt((red_x-violet_x)**2+(red_y-violet_y)**2) < num:
+                        if math.sqrt((violet_x-blue_x)**2+(violet_y-blue_y)**2) < num:
+                            objects.append([R[i], B[n], V[m]])
+    return objects
+            
 #M29 flats
 flat_R_M29 = openfile('/users/asha/desktop/school/physics_136/l1d1/flat_R/', 'R Flats', 36000, 7, 60)
 flat_B_M29 = openfile('/users/asha/desktop/school/physics_136/l1d1/flat_B/', 'B Flats', 38000, 3, 60)
@@ -208,9 +229,9 @@ plt.show()"""
 
 ##Object Detection bruh
 #M29
-M29_B_objets = objectdetect('M29 B', M29_B/flat_B_M29, 3)
-M29_R_objets = objectdetect('M29 R', M29_R/flat_R_M29, 3)
-M29_V_objets = objectdetect('M29 V', M29_V/flat_V_M29, 3)
+M29_B_objects = objectdetect('M29 B', M29_B/flat_B_M29, 3)
+M29_R_objects = objectdetect('M29 R', M29_R/flat_R_M29, 3)
+M29_V_objects = objectdetect('M29 V', M29_V/flat_V_M29, 3)
 
 
 #Star
@@ -220,17 +241,52 @@ Star_V_objects = objectdetect('Star V', Star_V/flat_V_Star, 1)
 
 
 #M15
-M15_B_objects = objectdetect('M15 B', M15_B/flat_B_M15, 3)
-M15_R_objects = objectdetect('M15 R', M15_R/flat_R_M15, 3)
-M15_V_objects = objectdetect('M15 V', M15_V/flat_V_M15, 3)
+M15_B_objects = objectdetect('M15 B', M15_B/flat_B_M15, 5)
+M15_R_objects = objectdetect('M15 R', M15_R/flat_R_M15, 5)
+M15_V_objects = objectdetect('M15 V', M15_V/flat_V_M15, 5)
+
+M_29_objects = confide(M29_B_objects, M29_V_objects, M29_R_objects, 3)
+M15_objects = confide(M15_B_objects, M15_V_objects, M15_R_objects, 5)
 
 
+"""
+B = []
+V = []
+R = []
 
 
+for i in M15_objects:
+    B.append(i[0])
+    V.append(i[1])
+    R.append(i[2])
+m, s = np.mean(M15_B/flat_B_M15), np.std(M15_B/flat_B_M15)
+fig, ax = plt.subplots()
+im = ax.imshow(M15_B/flat_B_M15, interpolation='nearest', cmap='gray',
+            vmin=m-s, vmax=m+s, origin='lower')
+for i in range(len(B)):
+        e = Ellipse(xy=(B[i]['x'], B[i]['y']),
+                    width=6*B[i]['a'],
+                    height=6*B[i]['b'], 
+                    angle=B[i]['theta'] * 180. / np.pi)
+        e.set_facecolor('none')
+        e.set_edgecolor('red')
+        ax.add_artist(e)
+plt.show()
 
+m, s = np.mean(M15_V/flat_V_M15), np.std(M15_V/flat_V_M15)
+fig, ax = plt.subplots()
+im = ax.imshow(M15_V/flat_V_M15, interpolation='nearest', cmap='gray',
+            vmin=m-s, vmax=m+s, origin='lower')
+for i in range(len(V)):
+        e = Ellipse(xy=(V[i]['x'], V[i]['y']),
+                    width=6*V[i]['a'],
+                    height=6*V[i]['b'], 
+                    angle=V[i]['theta'] * 180. / np.pi)
+        e.set_facecolor('none')
+        e.set_edgecolor('red')
+        ax.add_artist(e)
+plt.show()
 
-
-
-
+"""
 
 
