@@ -14,32 +14,54 @@ from matplotlib.patches import Ellipse
 
 def openfile(folder, name, vmax_bruh, integration_time, wanted_integration_time):
     global_hdulist = []
+    #opening and appending each fits 2D array to global_hdulist
     for i in range(len(os.listdir(folder))):
         global_hdulist.append((fits.open((str(folder)+str(os.listdir(folder)[i])))[0].data))
+    #taking the median of all the images
     final_hdulist = np.median(np.array(global_hdulist), axis=0)
+    #creating array of overscan
     overscan = final_hdulist[:, [1024, 1055]]
+    #taking median of overscan
     median_overscan = np.median(overscan)
+    #removing overscan from fits file
     final_hdulist -= median_overscan
+    #scaling correctly for integration time
     final_hdulist *= wanted_integration_time/integration_time
+    #deleting overscan
     end = np.delete(final_hdulist, np.arange(1024, 1056), axis = 1)
+    #deleting error at column 256
     end = np.delete(end, 256, axis = 1)
+    #deleting vignette in top and bottom left corners
     end = np.delete(end, np.arange(38), axis = 1)
+    
     return end 
 
 def objectdetect(name, final_science, extraction_number):
     #plt.figure(str(name) + 'background')
     #plt.title(str(name) + 'background')
+    
+    #creating background
     bkg = sep.Background(np.ascontiguousarray(final_science))
     #plt.imshow(bkg, interpolation='nearest', cmap='gray', origin='lower')
     #plt.colorbar()
     #plt.show()
+    
+    #subtracting background from image
     data_sub = np.ascontiguousarray(final_science) - bkg
+    #extracting objects
     objects = sep.extract(data_sub, extraction_number, err=bkg.globalrms)
-    name, ax = plt.subplots()
+    #removing oblong objects
+    delete = []
+    for i in range(len(objects)):
+        if objects[i]['a']/objects[i]['b'] > 1.25:
+            delete.append(i)
+    print(delete)
+    objects = np.delete(objects, delete)
+    
+    fig, ax = plt.subplots()
     m, s = np.mean(data_sub), np.std(data_sub)
     im = ax.imshow(data_sub, interpolation='nearest', cmap='gray',
             vmin=m-s, vmax=m+s, origin='lower')
-
     # plot an ellipse for each object
     for i in range(len(objects)):
         e = Ellipse(xy=(objects['x'][i], objects['y'][i]),
@@ -126,6 +148,7 @@ flat_V_Star /= np.average(flat_V_Star)
 flat_B_Star /= np.average(flat_B_Star)
 flat_R_Star /= np.average(flat_R_Star)
 
+#creating plots
 """plt.figure('M29 R')
 
 plt.imshow(M29_R/flat_R_M29, vmax = 900, vmin = 0)
@@ -182,11 +205,25 @@ plt.colorbar()
 plt.show()"""
 
 
-#Object Detection bruh
 
+##Object Detection bruh
+#M29
 M29_B_objets = objectdetect('M29 B', M29_B/flat_B_M29, 3)
-Star_B_objects = objectdetect('Star B', Star_B/flat_B_Star, 15)
-M15_B_objects = objectdetect('M15 B', M15_B/flat_B_M15, 5)
+M29_R_objets = objectdetect('M29 R', M29_R/flat_R_M29, 3)
+M29_V_objets = objectdetect('M29 V', M29_V/flat_V_M29, 3)
+
+
+#Star
+Star_B_objects = objectdetect('Star B', Star_B/flat_B_Star, 1)
+Star_R_objects = objectdetect('Star R', Star_R/flat_R_Star, 1)
+Star_V_objects = objectdetect('Star V', Star_V/flat_V_Star, 1)
+
+
+#M15
+M15_B_objects = objectdetect('M15 B', M15_B/flat_B_M15, 3)
+M15_R_objects = objectdetect('M15 R', M15_R/flat_R_M15, 3)
+M15_V_objects = objectdetect('M15 V', M15_V/flat_V_M15, 3)
+
 
 
 
