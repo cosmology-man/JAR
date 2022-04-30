@@ -372,8 +372,10 @@ for q in range(len(isochrone[0])):
 temp = np.delete(isochrone, tmp, axis = 1)
 
 plt.plot(isochrone[-6]-isochrone[-7], isochrone[-7], 'o')
+plt.show()
 
-
+plt.plot(M15_HR[0], M15_HR[1], 'o')
+plt.show()
 
 
 
