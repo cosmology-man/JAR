@@ -62,7 +62,7 @@ def objectdetect(name, final_science, extraction_number):
     
 
     
-    fig, ax = plt.subplots()
+    """fig, ax = plt.subplots()
     m, s = np.mean(data_sub), np.std(data_sub)
     im = ax.imshow(data_sub, interpolation='nearest', cmap='gray',
             vmin=m-s, vmax=m+s, origin='lower')
@@ -74,7 +74,7 @@ def objectdetect(name, final_science, extraction_number):
                     angle=objects['theta'][i] * 180. / np.pi)
         e.set_facecolor('none')
         e.set_edgecolor('red')
-        ax.add_artist(e)
+        ax.add_artist(e)"""
     return objects
 
 def confide(R, B, V, num):
@@ -93,7 +93,53 @@ def confide(R, B, V, num):
                         if math.sqrt((violet_x-blue_x)**2+(violet_y-blue_y)**2) < num:
                             objects.append([R[i]['cflux'], B[n]['cflux'], V[m]['cflux']])
     return objects
-            
+
+def isochronefit(isochrone_file_path, HR_object):
+    isochrone = np.loadtxt(str(isochrone_file_path), unpack=True)
+    over = []
+    for i in range(len(HR_object[0])):
+        chi = []
+        x = HR_object[0][i]
+        y = HR_object[1][i]
+        
+        for n in np.linspace(7, 10, 61):
+            tmp = []
+            for q in range(len(isochrone[0])):
+                if isochrone[0][q] != n:
+                    tmp.append(q)
+            temp = np.delete(isochrone, tmp, axis = 1)
+            globe = []
+            for q in range(len(temp[0])):
+                globe.append(math.sqrt(((temp[-6][q]-temp[-7][q])-x)**2+(temp[-6][q]-y)**2))
+            if globe == []:
+                globe = globe
+            else:
+                chi.append(globe[globe.index(min(globe))])
+        over.append(chi)
+    return over
+
+mzp = 20
+def M15magnitudes(counts):
+    mab=np.ndarray(len(counts))
+    for i in range(len(counts)):
+        N = counts[i]/120
+        mi = (-2.5)*(math.log10(abs(N)))
+        tempmab = mi + mzp
+        mab[i] = tempmab
+    return(mab)
+
+
+def M29magnitudes(counts):
+    mab=np.ndarray(len(counts))
+    for i in range(len(counts)):
+        N = counts[i]/60
+        mi = (-2.5)*(math.log10(abs(N)))
+        tempmab = mi + mzp
+        mab[i] = tempmab
+    return(mab)
+
+
+
 #M29 flats
 flat_R_M29 = openfile('/users/asha/desktop/school/physics_136/l1d1/flat_R/', 'R Flats', 36000, 7, 60)
 flat_B_M29 = openfile('/users/asha/desktop/school/physics_136/l1d1/flat_B/', 'B Flats', 38000, 3, 60)
@@ -288,5 +334,134 @@ for i in range(len(V)):
 plt.show()
 
 """
+
+M29_objects = np.delete(M29_objects, 0, axis = 1)
+M15_objects = np.delete(M15_objects, 0, axis = 1)
+
+M29_B_V = M29_objects[:, 1]-M29_objects[:,0]
+M15_B_V = M15_objects[:, 1]-M15_objects[:,0]
+
+M29_B = np.delete(M29_objects, 0, axis = 1)
+M15_B = np.delete(M15_objects, 0, axis = 1)
+
+
+
+M29_B_V = M29magnitudes(M29_B_V)
+M15_B_V = M15magnitudes(M15_B_V)
+
+M29_B = M29magnitudes(M29_B)
+M15_B = M15magnitudes(M15_B)
+
+
+
+M29_HR = [M29_B_V, M29_B]
+M15_HR = [M15_B_V, M15_B]
+
+#fitting isochrones
+M15 = isochronefit('/users/asha/downloads/isoc_z008s/isochrones/iso_jc_z008s.dat', M15_HR)
+final = np.sum(M15, axis = 1)
+
+
+isochrone = np.loadtxt(str('/users/asha/downloads/isoc_z008s/isochrones/iso_jc_z008s.dat'), unpack=True)
+tmp = []
+
+for q in range(len(isochrone[0])):
+    if isochrone[0][q] != 7.1:
+        tmp.append(q)
+
+temp = np.delete(isochrone, tmp, axis = 1)
+
+plt.plot(isochrone[-6]-isochrone[-7], isochrone[-7], 'o')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
